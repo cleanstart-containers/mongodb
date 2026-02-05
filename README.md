@@ -5,7 +5,8 @@ The CleanStart Mongodb image provides a production-ready, security-hardened data
 📌 **Base Foundation**: Security-hardened, minimal base OS designed for enterprise containerized environments.
 
 **Image Path**: `ghcr.io/cleanstart-containers/mongodb`
-**Registry**: cleanstart Registry
+
+**Registry**: `cleanstart`
 
 ## Key Features
 Core capabilities and strengths of this container
@@ -27,13 +28,10 @@ Typical scenarios where this container excels
 Download the container image from the registry
 
 ```bash
-docker pull ghcr.io/cleanstart-containers/mongodb:mongodb
+docker pull ghcr.io/cleanstart-containers/mongodb:latest
 ```
 ```bash
-docker pull ghcr.io/cleanstart-containers/mongodb:container
-```
-```bash
-docker pull ghcr.io/cleanstart-containers/mongodb:enterprise
+docker pull ghcr.io/cleanstart-containers/mongodb:latest-dev
 ```
 
 ## Basic Run
@@ -48,10 +46,18 @@ Deploy with production security settings
 
 ```bash
 docker run -d --name mongodb-prod \
-  --security-opt=no-new-privileges \
-  --user 1000:1000 \
+  -v mongodb-data:/data/db \
+  -p 27017:27017 \
+  ghcr.io/cleanstart-containers/mongodb:latest 
+sleep 15
+docker exec mongodb-prod mongosh admin --eval 'db.createUser({user:"admin",pwd:"Pass123",roles:[{role:"root",db:"admin"}]})'
+docker stop mongodb-prod && docker rm mongodb-prod
+docker run -d --name mongodb-prod \
+  -v mongodb-data:/data/db \
+  -p 27017:27017 \
   --restart unless-stopped \
-  ghcr.io/cleanstart-containers/mongodb:latest
+  ghcr.io/cleanstart-containers/mongodb:latest \
+  --auth
 ```
 
 Volume Mount Mount local directory for persistent data
@@ -69,11 +75,6 @@ docker run -p 8080:8080 ghcr.io/cleanstart-containers/mongodb:latest
 ## Environment Variables
 Configuration options available through environment variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| PATH | /usr/local/sbin:/... | System PATH configuration |
-| POSTGRES_PASSWORD |  | Password for the PostgreSQL superuser |
-| POSTGRES_DB | postgres | Default database name |
 
 ## Security Best Practices
 Recommended security configurations and practices
